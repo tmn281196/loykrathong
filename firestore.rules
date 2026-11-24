@@ -1,0 +1,42 @@
+rules_version = '2';
+
+// Luật cho trang Loy Krathong:
+// - Ai cũng đọc được danh sách.
+// - Tạo người mới: id tài liệu phải là tên viết thường; tối đa 1 lời chúc lúc tạo.
+// - Cập nhật: chỉ được NỐI THÊM đúng 1 lời chúc vào cuối, không sửa/xóa lời chúc cũ, không đổi tên/màu.
+// - Không ai được xóa.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function validWish(w) {
+      return w is map
+        && w.keys().hasOnly(['text', 'ts'])
+        && w.text is string && w.text.size() > 0 && w.text.size() <= 60
+        && w.ts is number;
+    }
+
+    match /people/{personId} {
+      allow read: if true;
+
+      allow create: if request.resource.data.keys().hasOnly(['name', 'color', 'ts', 'wishes'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 20
+        && personId == request.resource.data.name.lower()
+        && request.resource.data.color is int
+        && request.resource.data.color >= 0 && request.resource.data.color <= 7
+        && request.resource.data.ts is number
+        && request.resource.data.wishes is list
+        && request.resource.data.wishes.size() <= 1
+        && (request.resource.data.wishes.size() == 0 || validWish(request.resource.data.wishes[0]));
+
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wishes'])
+        && request.resource.data.wishes is list
+        && request.resource.data.wishes.size() == resource.data.wishes.size() + 1
+        && request.resource.data.wishes.size() <= 30
+        && request.resource.data.wishes[0:resource.data.wishes.size()] == resource.data.wishes
+        && validWish(request.resource.data.wishes[resource.data.wishes.size()]);
+
+      allow delete: if false;
+    }
+  }
+}
