@@ -22,6 +22,16 @@
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 
   #title{position:fixed;top:16px;left:16px;z-index:5;padding:12px 16px;max-width:calc(100% - 32px - 150px)}
+  /* logo trắng, tỏa sáng nhẹ theo nhịp */
+  .logo{display:block;height:auto;filter:brightness(0) invert(1) drop-shadow(0 0 3px rgba(255,255,255,.8)) drop-shadow(0 0 10px rgba(255,214,150,.45));
+    animation:logoGlow 3.2s ease-in-out infinite}
+  @keyframes logoGlow{
+    0%,100%{filter:brightness(0) invert(1) drop-shadow(0 0 3px rgba(255,255,255,.75)) drop-shadow(0 0 10px rgba(255,214,150,.4))}
+    50%{filter:brightness(0) invert(1) drop-shadow(0 0 7px rgba(255,255,255,1)) drop-shadow(0 0 24px rgba(255,210,140,.85))}
+  }
+  @media (prefers-reduced-motion:reduce){.logo{animation:none}}
+  #title .logo{width:100px;margin:2px 0 8px}
+  #intro .logo{width:min(230px,62vw);margin:0 auto 18px}
   #title .th{font-size:13px;letter-spacing:.12em;color:var(--gold)}
   #title h1{margin:2px 0;font-size:22px;font-weight:700}
   #title .sub{font-size:12.5px;color:var(--ink-dim)}
@@ -48,7 +58,7 @@
   .sw:hover{transform:scale(1.12)}
   .sw[aria-checked="true"]{border-color:#fff;transform:scale(1.18)}
 
-  #yt{position:fixed;left:16px;top:150px;z-index:5;width:min(356px,calc(100% - 32px));padding:6px}
+  #yt{position:fixed;left:16px;top:208px;z-index:5;width:min(356px,calc(100% - 32px));padding:6px}
   .yt-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:600;padding:2px 6px 6px}
   .yt-head button{background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--ink);border-radius:8px;
     font:inherit;font-size:12px;padding:3px 10px;cursor:pointer;white-space:nowrap}
@@ -97,12 +107,13 @@
   @media (max-width:640px){
     #title{padding:10px 12px;max-width:calc(100% - 32px - 120px)}
     #title h1{font-size:18px}
+    #title .logo{width:72px;margin-bottom:4px}
     #title .sub,#title .count{font-size:11.5px}
     #vol{width:60px}
     #hint{white-space:normal;text-align:center;width:calc(100% - 32px);bottom:calc(130px + env(safe-area-inset-bottom))}
     .btn-gold{padding:11px 13px}
     #name{max-width:none}
-    #yt{top:124px}
+    #yt{top:166px}
     .sw{width:22px;height:22px}
     #people{top:auto;bottom:calc(150px + env(safe-area-inset-bottom));width:auto;max-width:calc(100% - 32px)}
     #pList{max-height:30vh}
@@ -113,6 +124,7 @@
 <div id="app"></div>
 
 <header id="title" class="panel">
+  <img class="logo" src="assets/tng-logo.png" alt="T.N.G TECH" width="480" height="225">
   <div class="th">Loy Krathong</div>
   <h1>ลอยกระทง</h1>
   <div class="sub">คืนวันเพ็ญเดือนสิบสอง · 24 พฤศจิกายน 2569</div>
@@ -151,6 +163,7 @@
 
 <div id="intro">
   <div class="inner">
+    <img class="logo" src="assets/tng-logo.png" alt="T.N.G TECH" width="480" height="225">
     <div class="th">ลอยกระทง</div>
     <h2>คืนลอยกระทง</h2>
     <p id="introText">ปล่อยความทุกข์ให้ลอยไปกับสายน้ำ รับสิ่งดีงามใต้แสงจันทร์วันเพ็ญ<br>เขียนคำอวยพร ลอยกระทง และฟังเพลงไปด้วยกัน</p>
@@ -727,7 +740,7 @@ class Krathong {
     this.group.position.set(x, 0, z); this.group.rotation.y = rand(0, Math.PI * 2);
     this.vz = -rand(.9, 1.4); this.vx = rand(-.08, .08); this.phase = rand(0, 10); this.spin = rand(-.15, .15);
     this.age = age; this.life = Math.max(age + 40, rand(150, 230)); this.intensity = 0; this.user = user;
-    if (person) { this.vz = -rand(.45, .7); this.life = 1e9; }      // hoa của mỗi người trôi chậm và không tắt nến
+    if (person) { this.vz = -rand(.22, .32); this.life = 1e9; }     // hoa của mỗi người trôi chậm và không tắt nến
     if (name) {
       const col = COLORS[variant].color;
       this.label = makeLabel(name, wish, col); this.group.add(this.label); this.wishShown = wish;
@@ -766,11 +779,11 @@ class Krathong {
       this.aura.scale.setScalar(2.8 + this.pulse * 3 + .25 * Math.sin(t * 2.2 + this.phase));
     }
     const dx = p.x - ISLAND.x, dz = p.z - ISLAND.z;
-    if (this.person && (p.z < -110 || Math.abs(p.x) > 30)) { this.comeBack(); return true; }   // trôi xa thì quay lại đầu bến
+    if (this.person && (p.z < -30 || Math.abs(p.x) > 14)) { this.comeBack(); return true; }   // trôi xa khỏi cụm thì quay lại đầu bến
     return p.z > -290 && dx * dx + dz * dz > 24 * 24;
   }
-  comeBack(x = rand(-7, 7), z = rand(2, 7)){
-    this.group.position.set(x, 0, z); this.age = 0; this.vx = rand(-.06, .06);
+  comeBack(x = rand(-5, 5), z = rand(3, 7)){
+    this.group.position.set(clamp(x, -10, 10), 0, clamp(z, -28, 8.2)); this.age = 0; this.vx = rand(-.06, .06);
   }
   setWish(wish){
     if (!this.name) return;
@@ -892,7 +905,6 @@ function updateRipples(dt){
   }
 }
 const krathongs = [];
-for (let i = 0; i < (isMobile ? 28 : 40); i++) krathongs.push(new Krathong(rand(-45, 45), rand(-230, 0), { age: rand(8, 120) }));
 
 const followLight = new THREE.PointLight('#ffa050', 0, 7, 2);
 scene.add(followLight);
@@ -979,8 +991,9 @@ function celebrate(k){
 function addPerson(p, mode, pos){
   if (people.has(p.id)) return people.get(p.id).k;
   const portrait = innerWidth < innerHeight;
-  const [x, z] = pos || (mode === 'initial' ? [rand(-8, 8), rand(-100, 6)]
+  let [x, z] = pos || (mode === 'initial' ? [rand(-6, 6), rand(-28, 6)]
                                             : [rand(portrait ? -2 : -4, portrait ? 2 : 4), rand(3, 7)]);
+  x = clamp(x, -10, 10); z = clamp(z, -28, 8.2);              // luôn ở trong cụm trước bến
   const variant = clamp(p.color | 0, 0, COLORS.length - 1);
   const k = new Krathong(x, z, { variant, name: p.name, wish: latestWish(p), person: p, age: mode === 'initial' ? rand(2, 30) : 0 });
   krathongs.push(k); people.set(p.id, { p, k });
@@ -1264,7 +1277,23 @@ addEventListener('resize', () => {
    ===================================================================== */
 const clock = new THREE.Clock();
 const lightList = [], tmpV = new THREE.Vector3();
-let nextSpawn = 2, countTimer = 0;
+let countTimer = 0;
+// Giữ hoa của mọi người trôi thành một cụm: kéo về giữa dòng và đẩy nhẹ nếu quá sát nhau
+function herdPeople(dt){
+  const list = [];
+  for (const e of people.values()) list.push(e.k);
+  for (const k of list) {
+    const p = k.group.position;
+    let fx = -p.x * .04, fz = 0;
+    for (const o of list) {
+      if (o === k) continue;
+      const dx = p.x - o.group.position.x, dz = p.z - o.group.position.z, d2 = dx * dx + dz * dz;
+      if (d2 < 4.4 && d2 > 1e-6) { const d = Math.sqrt(d2), f = (2.1 - d) * .9; fx += dx / d * f; fz += dz / d * f; }
+    }
+    k.vx = clamp(k.vx + (fx - k.vx * .6) * dt, -.6, .6);
+    p.z += clamp(fz, -1, 1) * dt;
+  }
+}
 const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 
 renderer.setAnimationLoop(() => {
@@ -1281,12 +1310,7 @@ renderer.setAnimationLoop(() => {
   skyGroup.userData.starMat.uniforms.uTime.value = t;
   water.material.uniforms.uTime.value = t;
 
-  // người khác cũng đang thả krathong
-  nextSpawn -= dt;
-  if (nextSpawn <= 0) {
-    nextSpawn = rand(2.2, 3.8);
-    if (krathongs.length - people.size < (isMobile ? 70 : 110)) krathongs.push(new Krathong(rand(-40, 40), rand(-45, -12)));
-  }
+  herdPeople(dt);
   for (let i = krathongs.length - 1; i >= 0; i--) {
     if (!krathongs[i].update(dt, t)) { if (followTarget === krathongs[i]) followTarget = null; krathongs[i].dispose(); krathongs.splice(i, 1); }
   }
