@@ -3,16 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>คืนลอยกระทง | T.N.G TECH</title>
-<meta name="description" content="ลอยกระทงออนไลน์กับ T.N.G TECH · เขียนชื่อและคำอวยพร แล้วลอยกระทงไปด้วยกัน">
+<title>T.N.G TECH | คืนลอยกระทง 2569</title>
+<meta name="description" content="T.N.G TECH ชวนลอยกระทงออนไลน์ · เขียนชื่อและคำอวยพร แล้วลอยกระทงไปด้วยกัน">
 <link rel="icon" type="image/png" href="assets/tng-logo.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="T.N.G TECH">
-<meta property="og:title" content="คืนลอยกระทง | T.N.G TECH">
-<meta property="og:description" content="ลอยกระทงออนไลน์กับ T.N.G TECH · เขียนชื่อและคำอวยพร แล้วลอยกระทงไปด้วยกัน">
+<meta property="og:title" content="T.N.G TECH | คืนลอยกระทง 2569">
+<meta property="og:description" content="T.N.G TECH ชวนลอยกระทงออนไลน์ · เขียนชื่อและคำอวยพร แล้วลอยกระทงไปด้วยกัน">
 <meta property="og:url" content="https://tmn281196.github.io/loykrathong/">
-<meta property="og:image" content="https://tmn281196.github.io/loykrathong/assets/tng-logo.png">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://tmn281196.github.io/loykrathong/assets/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="T.N.G TECH · Loy Krathong 2026">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -377,6 +380,13 @@ class FestivalMusic {
     if (barPos === 6) this.ching(t, false, 1);
     if (arr.drum && DRUM[barPos]) this.drum(t, DRUM[barPos][0], DRUM[barPos][1]);
   }
+  boom(v = 1){                        // tiếng pháo hoa nổ + lách tách
+    if (!this.started) return;
+    const t = this.ctx.currentTime + .02, d = this.pans.fx;
+    this.noiseHit(t, 160, .3 * v, 1.1, d, .7, 'lowpass');
+    this.tone('sine', 75, t, .22 * v, .004, .7, d, 34, .6);
+    for (let i = 0; i < 12; i++) this.noiseHit(t + .3 + Math.random() * .9, rand(2500, 6500), .02 * v, .03, d, 1, 'bandpass');
+  }
   chime(){                            // âm báo khi thả krathong
     if (!this.started) return;
     const t = this.ctx.currentTime + .02;
@@ -637,6 +647,42 @@ const staticLights = [];
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#ffb050', opacity: .14, blending: THREE.AdditiveBlending, depthWrite: false }));
   halo.position.set(ISLAND.x, 16, ISLAND.z - 2); halo.scale.setScalar(75); scene.add(halo);
   staticLights.push([ISLAND.x, 14, ISLAND.z, 1.2]);
+}
+
+/* ---------- Wat Arun (วัดอรุณ): prang lớn ở giữa + 4 prang nhỏ, chiếu sáng vàng ban đêm ---------- */
+const WAT = new THREE.Vector3(52, 0, -168);
+{
+  const land = new THREE.Mesh(new THREE.CylinderGeometry(31, 34, 2, 48), new THREE.MeshStandardMaterial({ color: '#0b0b16', roughness: 1 }));
+  land.position.set(WAT.x, 0, WAT.z); scene.add(land);
+  // mặt cắt prang: các tầng bậc phía dưới, thân hình bắp ngô thuôn dần, đỉnh nhọn
+  const P = [[0, 0], [15, 0], [15, 2.2], [13.6, 2.2], [13.6, 4.6], [12.2, 4.6], [12.2, 7.2], [10.6, 7.2], [10.6, 9.8], [9.2, 9.8],
+             [9.2, 11.4], [8.4, 11.4], [8.2, 14], [7.9, 17], [7.3, 20], [6.5, 23], [5.5, 26], [4.4, 29], [3.3, 31.6], [2.3, 33.6],
+             [1.6, 35], [1.9, 35.6], [1.1, 36.4], [.7, 38.5], [.45, 41.5], [.22, 44.5], [0, 47]];
+  const prangGeo = new THREE.LatheGeometry(P.map(([x, y]) => new THREE.Vector2(x, y)), 12);
+  const bands = [[14.5, 8.3], [18, 7.8], [21.5, 7], [25, 6], [28.5, 4.7], [32, 3.1]].map(([y, r]) => {
+    const b = new THREE.CylinderGeometry(r + .35, r + .35, .45, 12); b.translate(0, y, 0); return b;
+  });
+  const bandGeo = mergeGeometries(bands);
+  const stone = new THREE.MeshStandardMaterial({ color: '#efe3c8', roughness: .55, metalness: .1, emissive: '#9a6420', emissiveIntensity: .55, flatShading: true });
+  const trim = new THREE.MeshStandardMaterial({ color: '#d9a441', roughness: .4, metalness: .5, emissive: '#a8661a', emissiveIntensity: .8, flatShading: true });
+  const prang = (dx, dz, s) => {
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(prangGeo, stone), new THREE.Mesh(bandGeo, trim));
+    g.position.set(WAT.x + dx, 1, WAT.z + dz); g.scale.setScalar(s); g.rotation.y = Math.PI / 12;
+    scene.add(g);
+  };
+  prang(0, 0, 1);
+  [[-20, -20], [20, -20], [-20, 20], [20, 20]].forEach(([dx, dz]) => prang(dx, dz, .4));
+  const treeGeo = new THREE.ConeGeometry(2.2, 8, 7), treeMat = new THREE.MeshBasicMaterial({ color: '#070a12' });
+  for (let i = 0; i < 14; i++) {
+    const a = rand(0, Math.PI * 2), r = rand(25, 30), t = new THREE.Mesh(treeGeo, treeMat);
+    t.position.set(WAT.x + Math.cos(a) * r, 4, WAT.z + Math.sin(a) * r); t.scale.setScalar(rand(.7, 1.2)); scene.add(t);
+  }
+  const l1 = new THREE.PointLight('#ffb35c', 2600, 120, 2); l1.position.set(WAT.x - 10, 10, WAT.z + 36); scene.add(l1);
+  const l2 = new THREE.PointLight('#ffd08a', 900, 70, 2); l2.position.set(WAT.x + 18, 30, WAT.z + 22); scene.add(l2);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#ffb860', opacity: .16, blending: THREE.AdditiveBlending, depthWrite: false }));
+  halo.position.set(WAT.x, 22, WAT.z - 3); halo.scale.set(80, 95, 1); scene.add(halo);
+  staticLights.push([WAT.x, 18, WAT.z, 1.6]);
 }
 
 /* ---------- bến gỗ và đèn lồng ---------- */
@@ -919,6 +965,236 @@ const followLight = new THREE.PointLight('#ffa050', 0, 7, 2);
 scene.add(followLight);
 let followTarget = null;
 
+/* ---------- pháo hoa (và pháo hoa xếp thành cờ Thái) ---------- */
+const FW_N = isMobile ? 4000 : 8000;
+const fwPos = new Float32Array(FW_N * 3), fwCol = new Float32Array(FW_N * 3), fwAlpha = new Float32Array(FW_N), fwSize = new Float32Array(FW_N),
+      fwVel = new Float32Array(FW_N * 3), fwLife = new Float32Array(FW_N), fwMax = new Float32Array(FW_N),
+      fwDrag = new Float32Array(FW_N), fwGrav = new Float32Array(FW_N),
+      fwFlag = new Uint8Array(FW_N), fwStart = new Float32Array(FW_N * 3), fwTarget = new Float32Array(FW_N * 3),
+      fwAge = new Float32Array(FW_N), fwHold = new Float32Array(FW_N), fwU = new Float32Array(FW_N);
+let fwCursor = 0, fwDirty = false;
+const fwGeo = new THREE.BufferGeometry();
+fwGeo.setAttribute('position', new THREE.BufferAttribute(fwPos, 3));
+fwGeo.setAttribute('aColor', new THREE.BufferAttribute(fwCol, 3));
+fwGeo.setAttribute('aAlpha', new THREE.BufferAttribute(fwAlpha, 1));
+fwGeo.setAttribute('aSize', new THREE.BufferAttribute(fwSize, 1));
+const fireworks = new THREE.Points(fwGeo, new THREE.ShaderMaterial({
+  uniforms: { uPR: { value: renderer.getPixelRatio() }, uH: { value: innerHeight } },
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+  vertexShader: `attribute vec3 aColor; attribute float aAlpha; attribute float aSize; uniform float uPR; uniform float uH;
+    varying vec3 vColor; varying float vAlpha;
+    void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv;
+      gl_PointSize = max(aSize * uPR * uH * 0.9 / max(-mv.z, 0.1), 1.5); vColor = aColor; vAlpha = aAlpha; }`,
+  fragmentShader: `varying vec3 vColor; varying float vAlpha;
+    void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d); a *= a;
+      if (a * vAlpha < 0.003) discard; gl_FragColor = vec4(vColor * a * vAlpha, 1.0); }`,
+}));
+fireworks.frustumCulled = false; fireworks.renderOrder = 4; scene.add(fireworks);
+
+const FW_COLORS = ['#ffd27a', '#ff5a6e', '#ffffff', '#6fa8ff', '#ff9ad5', '#8dffb0', '#ffb347', '#c9a2ff'];
+const WHITE = new THREE.Color('#ffffff'), TRAIL_C = new THREE.Color(1.6, 1.1, .6), fwC = new THREE.Color();
+// Cờ Thái: đỏ – trắng – xanh (gấp đôi) – trắng – đỏ (xanh sáng hơn để nhìn rõ trên trời đêm)
+const FLAG_ROWS = ['#ff2a45', '#ffffff', '#3b6bff', '#3b6bff', '#ffffff', '#ff2a45'].map((h, i) => new THREE.Color(h).multiplyScalar(i === 2 || i === 3 ? 3 : h === '#ffffff' ? 1.6 : 2.2));
+const rockets = [], flashes = [];
+
+function fwEmit(x, y, z, vx, vy, vz, c, life, size, drag = 1.3, grav = 4.5){
+  const i = fwCursor, j = i * 3; fwCursor = (fwCursor + 1) % FW_N;
+  fwPos[j] = x; fwPos[j + 1] = y; fwPos[j + 2] = z;
+  fwVel[j] = vx; fwVel[j + 1] = vy; fwVel[j + 2] = vz;
+  fwCol[j] = c.r; fwCol[j + 1] = c.g; fwCol[j + 2] = c.b;
+  fwLife[i] = fwMax[i] = life; fwSize[i] = size; fwDrag[i] = drag; fwGrav[i] = grav; fwFlag[i] = 0;
+  fwDirty = true;
+  return i;
+}
+function launchRocket(type = 'peony', colorHex, x = rand(-70, 70), z = rand(-200, -120), top = rand(35, 58)){
+  rockets.push({ x, y: 1, z, vy: rand(26, 32), top, type, trail: 0,
+                 color: new THREE.Color(colorHex || FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)]) });
+}
+function fireworksFor(colorHex){
+  launchRocket('peony', colorHex, rand(-25, 25), rand(-160, -110), rand(42, 55));
+  setTimeout(() => launchRocket('peony', colorHex, rand(-35, 35), rand(-170, -120), rand(48, 62)), 350);
+}
+function burstFirework(r){
+  const { x, y, z } = r;
+  flashes.push({ x, y, z, w: 2.2 });
+  music.boom(clamp(120 / Math.hypot(x - camera.position.x, z - camera.position.z), .3, 1));
+  if (r.type === 'flag') return thaiFlagBurst(x, y, z);
+  const n = isMobile ? 110 : 200, willow = r.type === 'willow';
+  for (let k = 0; k < n; k++) {
+    const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, s = Math.sqrt(1 - u * u), sp = willow ? rand(7, 10) : rand(11, 15);
+    fwC.copy(willow ? new THREE.Color('#ffc46b') : r.color); if (Math.random() < .25) fwC.lerp(WHITE, .6); fwC.multiplyScalar(1.8);
+    fwEmit(x, y, z, s * Math.cos(th) * sp, u * sp, s * Math.sin(th) * sp, fwC,
+           willow ? rand(2.8, 3.6) : rand(1.6, 2.4), rand(.9, 1.3), willow ? 1.6 : 1.3, willow ? 6 : 4);
+  }
+  for (let k = 0; k < n / 4; k++) {                                      // tia lấp lánh
+    const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, s = Math.sqrt(1 - u * u), sp = rand(3, 9);
+    fwEmit(x, y, z, s * Math.cos(th) * sp, u * sp, s * Math.sin(th) * sp, fwC.set(2.2, 2.1, 1.8), rand(.4, 1), rand(.5, .8), 2, 2);
+  }
+}
+function thaiFlagBurst(x, y, z){
+  const cols = isMobile ? 36 : 54, rows = Math.round(cols * 2 / 3), W = innerWidth < innerHeight ? 34 : 42, H = W * 2 / 3;
+  const to = new THREE.Vector3(camera.position.x - x, 0, camera.position.z - z).normalize();
+  const R = new THREE.Vector3(to.z, 0, -to.x);                           // trục ngang của cờ, quay về phía người xem
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    const u = (i / (cols - 1) - .5) * W, v = (.5 - j / (rows - 1)) * H, c = FLAG_ROWS[Math.min(5, Math.floor(j * 6 / rows))];
+    const id = fwEmit(x + rand(-.3, .3), y + rand(-.3, .3), z, 0, 0, 0, c, 1, isMobile ? 1.25 : 1.15);
+    const k = id * 3;
+    fwFlag[id] = 1; fwAge[id] = -Math.random() * .15; fwHold[id] = rand(4.2, 4.8); fwU[id] = u;
+    fwStart[k] = fwPos[k]; fwStart[k + 1] = fwPos[k + 1]; fwStart[k + 2] = fwPos[k + 2];
+    fwTarget[k] = x + R.x * u; fwTarget[k + 1] = y + v; fwTarget[k + 2] = z + R.z * u;
+    fwLife[id] = fwMax[id] = fwHold[id] + 2;
+  }
+  for (let k = 0; k < 70; k++) {                                         // viền vàng khi bung
+    const th = Math.random() * Math.PI * 2, sp = rand(14, 18);
+    fwEmit(x, y, z, Math.cos(th) * sp * R.x, Math.sin(th) * sp, Math.cos(th) * sp * R.z, fwC.set(2, 1.6, .7), rand(1.2, 1.8), 1, 1.4, 3);
+  }
+}
+let fwTimer = 2, flagTimer = 7;
+function updateFireworks(dt, t){
+  if (entered) {
+    fwTimer -= dt;
+    if (fwTimer <= 0) {
+      fwTimer = rand(1.4, 3.4);
+      const n = Math.random() < .3 ? 3 : 1;
+      for (let k = 0; k < n; k++) setTimeout(() => launchRocket(Math.random() < .25 ? 'willow' : 'peony'), k * 260);
+    }
+    flagTimer -= dt;
+    if (flagTimer <= 0) {                                               // cờ bay ở vùng trời tối, tránh quầng trăng
+      flagTimer = 32;
+      const portrait = innerWidth < innerHeight;
+      launchRocket('flag', '#ffffff', portrait ? 0 : rand(-48, -38), -150, portrait ? 50 : 40);
+    }
+  }
+  for (let i = rockets.length - 1; i >= 0; i--) {
+    const r = rockets[i];
+    r.y += r.vy * dt; r.vy = Math.max(10, r.vy - 6 * dt); r.x += Math.sin(r.y * .2) * .05;
+    r.trail += dt;
+    while (r.trail > .012) { r.trail -= .012; fwEmit(r.x + rand(-.2, .2), r.y - rand(0, 1), r.z, rand(-.5, .5), rand(-3, -1), rand(-.5, .5), TRAIL_C, rand(.3, .6), rand(.35, .55), 2, 3); }
+    if (r.y >= r.top) { burstFirework(r); rockets.splice(i, 1); }
+  }
+  for (let i = flashes.length - 1; i >= 0; i--) { flashes[i].w -= dt * 2.4; if (flashes[i].w <= 0) flashes.splice(i, 1); }
+
+  for (let i = 0; i < FW_N; i++) {
+    if (fwLife[i] <= 0) { fwAlpha[i] = 0; continue; }
+    fwLife[i] -= dt;
+    const j = i * 3;
+    if (fwFlag[i]) {                                                     // hạt của lá cờ: bay ra vị trí, phất phới, rồi rơi
+      const a = (fwAge[i] += dt);
+      if (a < 0) { fwAlpha[i] = 0; continue; }
+      if (a < fwHold[i]) {
+        const p = Math.min(a / .9, 1), e = 1 - Math.pow(1 - p, 3), wave = Math.sin(fwU[i] * .22 - t * 3.2) * .9 * p;
+        fwPos[j] = fwStart[j] + (fwTarget[j] - fwStart[j]) * e;
+        fwPos[j + 1] = fwStart[j + 1] + (fwTarget[j + 1] - fwStart[j + 1]) * e + wave;
+        fwPos[j + 2] = fwStart[j + 2] + (fwTarget[j + 2] - fwStart[j + 2]) * e;
+        fwAlpha[i] = .85 + .15 * Math.sin(t * 9 + i);
+        continue;
+      }
+      fwFlag[i] = 0; fwMax[i] = fwLife[i] = Math.max(fwLife[i], .5);
+      fwVel[j] = rand(-.4, .4); fwVel[j + 1] = rand(-1, .5); fwVel[j + 2] = rand(-.4, .4); fwDrag[i] = 1; fwGrav[i] = 3;
+    }
+    const dr = Math.exp(-fwDrag[i] * dt);
+    fwVel[j] *= dr; fwVel[j + 1] = fwVel[j + 1] * dr - fwGrav[i] * dt; fwVel[j + 2] *= dr;
+    fwPos[j] += fwVel[j] * dt; fwPos[j + 1] += fwVel[j + 1] * dt; fwPos[j + 2] += fwVel[j + 2] * dt;
+    const lf = fwLife[i] / fwMax[i];
+    fwAlpha[i] = Math.min(1, lf * 1.6) * (lf < .35 ? .55 + .45 * Math.sin(t * 30 + i) : 1);
+  }
+  fwGeo.attributes.position.needsUpdate = fwGeo.attributes.aAlpha.needsUpdate = true;
+  if (fwDirty) { fwGeo.attributes.aColor.needsUpdate = fwGeo.attributes.aSize.needsUpdate = true; fwDirty = false; }
+}
+
+/* ---------- voi pháo hoa đi ngang bầu trời ---------- */
+const EL = (() => {                                                      // lấy mẫu điểm trong hình voi (nhìn ngang, quay sang phải)
+  const step = isMobile ? .62 : .45, pts = [];
+  const seg = (px, py, ax, ay, bx, by) => {
+    const dx = bx - ax, dy = by - ay, k = clamp(((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy), 0, 1);
+    return Math.hypot(px - ax - dx * k, py - ay - dy * k);
+  };
+  const trunk = [[10.8, 7.5], [12.2, 5.2], [12.8, 3], [12.6, 1.4], [13.6, .9]];
+  const legs = [[-5.6, 0], [-3.2, 1], [3, 1], [5.4, 0]];               // [x, nhóm bước chân]
+  for (let x = -10.5; x <= 15; x += step) for (let y = -.2; y <= 12.5; y += step) {
+    const inBody = (x / 8.2) ** 2 + ((y - 6.2) / 4.9) ** 2 <= 1;
+    const inHead = Math.hypot(x - 8.6, y - 8.2) <= 3.5;
+    const inEar = ((x - 6.2) / 2.4) ** 2 + ((y - 7.8) / 3.4) ** 2 <= 1;
+    let inTrunk = false;
+    for (let i = 0; i < trunk.length - 1; i++) if (seg(x, y, ...trunk[i], ...trunk[i + 1]) < 1.05 - i * .18) inTrunk = true;
+    const inTusk = seg(x, y, 10.3, 5.6, 12.3, 4.6) < .32;
+    const inTail = seg(x, y, -8, 7.2, -9.6, 3.6) < .3 || Math.hypot(x + 9.7, y - 3.3) < .55;
+    let leg = -1;
+    legs.forEach(([lx], i) => { if (Math.abs(x - lx) < 1.15 && y >= 0 && y <= 3.6) leg = i; });
+    if (inBody || inHead || inEar || inTrunk || inTusk || inTail || leg >= 0)
+      pts.push({ x, y, leg: inBody && y > 3.2 ? -1 : leg, ear: inEar && !inHead, sx: 2 + rand(-1, 1), sy: 6 + rand(-1, 1) });
+  }
+  return { pts, legs };
+})();
+const ELN = EL.pts.length;
+const elPos = new Float32Array(ELN * 3), elCol = new Float32Array(ELN * 3), elAlpha = new Float32Array(ELN), elSize = new Float32Array(ELN);
+EL.pts.forEach((p, i) => {
+  const c = Math.random() < .3 ? [1.5, 1.45, 1.3] : [1.6, 1.15, .5];    // vàng ánh kim + điểm trắng (không quá chói để giữ rõ hình)
+  elCol.set(c, i * 3); elSize[i] = isMobile ? 1.3 : 1.1;
+});
+const elGeo = new THREE.BufferGeometry();
+elGeo.setAttribute('position', new THREE.BufferAttribute(elPos, 3));
+elGeo.setAttribute('aColor', new THREE.BufferAttribute(elCol, 3));
+elGeo.setAttribute('aAlpha', new THREE.BufferAttribute(elAlpha, 1));
+elGeo.setAttribute('aSize', new THREE.BufferAttribute(elSize, 1));
+const elephant = new THREE.Points(elGeo, fireworks.material);
+elephant.frustumCulled = false; elephant.visible = false; elephant.renderOrder = 4; scene.add(elephant);
+const elShow = { on: false, t: 0, from: new THREE.Vector3(), to: new THREE.Vector3(), R: new THREE.Vector3(), dissolved: false };
+const elTmp = new THREE.Vector3(), elBasis = new THREE.Matrix4(), UP = new THREE.Vector3(0, 1, 0);
+let elTimer = 20;
+
+function startElephant(){
+  const portrait = innerWidth < innerHeight, y = portrait ? 46 : 30, span = portrait ? 45 : 90;
+  const center = new THREE.Vector3(portrait ? 0 : 10, y, -160);
+  const to = new THREE.Vector3(camera.position.x - center.x, 0, camera.position.z - center.z).normalize();
+  const R = elShow.R.set(to.z, 0, -to.x);                                // đi từ trái sang phải màn hình
+  elephant.quaternion.setFromRotationMatrix(elBasis.makeBasis(R, UP, to));
+  elShow.from.copy(center).addScaledVector(R, -span / 2);
+  elShow.to.copy(center).addScaledVector(R, span / 2);
+  elephant.scale.setScalar(portrait ? .8 : 1);
+  elephant.position.copy(elShow.from);
+  elShow.on = true; elShow.t = 0; elShow.dissolved = false; elephant.visible = true;
+  elTmp.set(2, 6, 0); elephant.updateMatrixWorld(); elephant.localToWorld(elTmp);
+  burstFirework({ x: elTmp.x, y: elTmp.y, z: elTmp.z, type: 'peony', color: new THREE.Color('#ffd27a') });
+}
+function updateElephant(dt, t){
+  if (entered) { elTimer -= dt; if (elTimer <= 0 && !elShow.on) { elTimer = 45; startElephant(); } }
+  if (!elShow.on) return;
+  const T = (elShow.t += dt), DUR = 16, FORM = 1.3, FADE = 1.6;
+  const k = clamp((T - FORM) / (DUR - FORM - FADE), 0, 1), walking = k > 0 && k < 1;
+  elephant.position.lerpVectors(elShow.from, elShow.to, k);
+  elephant.updateMatrixWorld();
+  const walk = T * 4.2, bob = walking ? Math.abs(Math.sin(walk)) * .35 : 0;
+  const form = 1 - Math.pow(1 - clamp(T / FORM, 0, 1), 3), fade = clamp((DUR - T) / FADE, 0, 1);
+  for (let i = 0; i < ELN; i++) {
+    const p = EL.pts[i];
+    let x = p.x, y = p.y;
+    if (p.leg >= 0) {                                                    // chân đung đưa quanh hông
+      const [lx, g] = EL.legs[p.leg], a = walking ? Math.sin(walk + g * Math.PI) * .32 : 0;
+      const dx = x - lx, dy = y - 3.8, c = Math.cos(a), s = Math.sin(a);
+      x = lx + dx * c - dy * s; y = 3.8 + dx * s + dy * c;
+    } else y += bob;
+    if (p.ear) x = 6.2 + (x - 6.2) * (1 + .1 * Math.sin(t * 5));        // tai phe phẩy
+    const j = i * 3;
+    elPos[j] = p.sx + (x - p.sx) * form; elPos[j + 1] = p.sy + (y - p.sy) * form; elPos[j + 2] = 0;
+    elAlpha[i] = (.55 + .25 * Math.sin(t * 8 + i)) * fade * Math.min(1, T / .3);
+  }
+  if (walking) for (let n = 0; n < 3; n++) {                             // tia lửa rơi từ bàn chân
+    const [lx] = EL.legs[Math.floor(Math.random() * 4)];
+    elTmp.set(lx + rand(-1, 1), rand(0, .6), 0); elephant.localToWorld(elTmp);
+    fwEmit(elTmp.x, elTmp.y, elTmp.z, -elShow.R.x * rand(1, 3), rand(-1.5, .5), -elShow.R.z * rand(1, 3), fwC.set(2.2, 1.6, .7), rand(.6, 1.2), rand(.5, .8), 1.5, 3);
+  }
+  if (T > DUR - FADE && !elShow.dissolved) {                             // tan thành mưa tia lửa vàng
+    elShow.dissolved = true;
+    for (let i = 0; i < ELN; i += 2) {
+      const j = i * 3; elTmp.set(elPos[j], elPos[j + 1], 0); elephant.localToWorld(elTmp);
+      fwEmit(elTmp.x, elTmp.y, elTmp.z, rand(-1.5, 1.5), rand(-1, 2), rand(-1.5, 1.5), fwC.set(2.3, 1.8, .9), rand(1.2, 2.4), rand(.6, .9), 1.2, 3.5);
+    }
+  }
+  if (T >= DUR) { elShow.on = false; elephant.visible = false; }
+  elGeo.attributes.position.needsUpdate = elGeo.attributes.aAlpha.needsUpdate = true;
+}
+
 /* ---------- đèn trời bay xa ---------- */
 const LN = isMobile ? 35 : 60;
 const lanternMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(.42, .32, .9, 10, 1, true),
@@ -1067,12 +1343,12 @@ function applyList(list){
       if (people.has(p.id)) {
         if (updatePerson(p)) {
           changed = true;
-          if (ready && entered) { const k = people.get(p.id).k; k.comeBack(); celebrate(k); toast(`✿ ${p.name} อวยพรเพิ่ม: “${latestWish(p)}”`); }
+          if (ready && entered) { const k = people.get(p.id).k; k.comeBack(); celebrate(k); fireworksFor(COLORS[k.variant].color); toast(`✿ ${p.name} อวยพรเพิ่ม: “${latestWish(p)}”`); }
         }
         continue;
       }
       addPerson(p, ready ? 'live' : 'initial'); changed = true;
-      if (ready && entered) { const w = latestWish(p); toast(`✿ ${p.name} เพิ่งลอยกระทง${w ? ': “' + w + '”' : ''}`); }
+      if (ready && entered) { const w = latestWish(p); fireworksFor(COLORS[clamp(p.color | 0, 0, COLORS.length - 1)].color); toast(`✿ ${p.name} เพิ่งลอยกระทง${w ? ': “' + w + '”' : ''}`); }
     }
     for (const id of [...people.keys()]) if (!ids.has(id)) { removePerson(id); changed = true; }
     if (changed) renderPeople();
@@ -1172,6 +1448,7 @@ async function release(x, z){
   followTarget = k;
   renderPeople();
   music.chime();
+  fireworksFor(COLORS[k.variant].color);
   if (existedBefore) toast(wish ? `✿ ${p.name} อวยพรเพิ่ม: “${wish}”` : `✿ กระทงของ ${p.name} กลับมาแล้ว`);
   else toast(wish ? `✿ ${p.name} อวยพร: “${wish}”` : `✿ กระทงของ ${p.name} ลอยไปแล้ว`);
   wishInput.value = '';
@@ -1279,6 +1556,7 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
   petals.material.uniforms.uH.value = innerHeight;
+  fireworks.material.uniforms.uH.value = innerHeight;
 });
 
 /* =====================================================================
@@ -1335,6 +1613,7 @@ renderer.setAnimationLoop(() => {
     lightList.push([p.x, y, p.z, k.intensity, (p.x - cp.x) ** 2 + (y - cp.y) ** 2 + (p.z - cp.z) ** 2]);
   }
   for (const L of staticLights) lightList.push([L[0], L[1], L[2], L[3], (L[0] - cp.x) ** 2 + (L[1] - cp.y) ** 2 + (L[2] - cp.z) ** 2]);
+  for (const f of flashes) lightList.push([f.x, f.y, f.z, f.w, 0]);       // ánh pháo hoa luôn được phản chiếu
   lightList.sort((a, b) => a[4] - b[4]);
   const U = water.material.uniforms, n = Math.min(MAXL, lightList.length);
   for (let i = 0; i < n; i++) U.uLights.value[i].set(lightList[i][0], lightList[i][1], lightList[i][2], lightList[i][3]);
@@ -1358,6 +1637,8 @@ renderer.setAnimationLoop(() => {
   if (entered) ambientPetals(dt);
   updatePetals(dt, t);
   updateRipples(dt);
+  updateFireworks(dt, t);
+  updateElephant(dt, t);
 
   countTimer -= dt;
   if (countTimer <= 0) { countTimer = .5; $('#cRiver').textContent = krathongs.length; }
