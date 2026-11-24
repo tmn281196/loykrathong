@@ -2,7 +2,7 @@ rules_version = '2';
 
 // Luật cho trang Loy Krathong:
 // - Ai cũng đọc được danh sách.
-// - Tạo người mới: id tài liệu phải là tên viết thường; tối đa 1 lời chúc lúc tạo.
+// - Tạo người mới: id tài liệu phải là tên viết thường; tối đa 1 lời chúc lúc tạo; "type" = loại krathong 0..3 (không bắt buộc).
 // - Cập nhật: chỉ được NỐI THÊM đúng 1 lời chúc vào cuối, không sửa/xóa lời chúc cũ, không đổi tên/màu.
 // - Không ai được xóa.
 service cloud.firestore {
@@ -18,7 +18,9 @@ service cloud.firestore {
     match /people/{personId} {
       allow read: if true;
 
-      allow create: if request.resource.data.keys().hasOnly(['name', 'color', 'ts', 'wishes'])
+      allow create: if request.resource.data.keys().hasOnly(['name', 'color', 'type', 'ts', 'wishes'])
+        && (!('type' in request.resource.data)
+            || (request.resource.data.type is int && request.resource.data.type >= 0 && request.resource.data.type <= 3))
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 20
         && personId == request.resource.data.name.lower()

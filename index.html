@@ -58,6 +58,12 @@
   #bar{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;
     display:flex;flex-direction:column;gap:8px;padding:8px;width:min(560px,calc(100% - 32px))}
   #bar .row{display:flex;gap:8px}
+  .types{display:flex;gap:6px}
+  .tp{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 4px;border-radius:10px;border:1px solid var(--line);
+    background:rgba(255,255,255,.05);color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;
+    transition:background .2s,border-color .2s,box-shadow .2s}
+  .tp:hover{background:rgba(255,255,255,.1)}
+  .tp[aria-checked="true"]{border-color:var(--gold);background:rgba(246,200,111,.18);box-shadow:0 0 12px rgba(246,200,111,.35)}
   .field{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;
     color:var(--ink);font:inherit;font-size:15px;padding:11px 14px;outline:none}
   .field:focus{border-color:var(--gold)}
@@ -99,7 +105,7 @@
   .btn-gold:active{transform:translateY(1px)}
   .btn-gold:disabled{opacity:.6;cursor:wait;filter:none}
 
-  #hint{position:fixed;left:50%;bottom:calc(136px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;
+  #hint{position:fixed;left:50%;bottom:calc(180px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;
     font-size:12.5px;color:var(--ink-dim);text-shadow:0 1px 6px #000;white-space:nowrap;transition:opacity 1.5s;pointer-events:none}
   #toast{position:fixed;left:50%;top:22%;transform:translate(-50%,8px);z-index:6;padding:10px 18px;font-size:15px;
     opacity:0;pointer-events:none;transition:opacity .5s,transform .5s;max-width:calc(100% - 32px);text-align:center}
@@ -121,12 +127,13 @@
     #title .logo{width:72px;margin-bottom:4px}
     #title .sub,#title .count{font-size:11.5px}
     #vol{width:60px}
-    #hint{white-space:normal;text-align:center;width:calc(100% - 32px);bottom:calc(130px + env(safe-area-inset-bottom))}
+    #hint{white-space:normal;text-align:center;width:calc(100% - 32px);bottom:calc(172px + env(safe-area-inset-bottom))}
     .btn-gold{padding:11px 13px}
     #name{max-width:none}
     #yt{top:166px}
     .sw{width:22px;height:22px}
-    #people{top:auto;bottom:calc(150px + env(safe-area-inset-bottom));width:auto;max-width:calc(100% - 32px)}
+    .tp{font-size:12px;padding:7px 2px}
+    #people{top:auto;bottom:calc(194px + env(safe-area-inset-bottom));width:auto;max-width:calc(100% - 32px)}
     #pList{max-height:30vh}
   }
 </style>
@@ -160,6 +167,7 @@
 </div>
 
 <div id="bar" class="panel">
+  <div id="types" class="types" role="radiogroup" aria-label="แบบกระทง"></div>
   <div class="row">
     <input id="name" class="field" maxlength="20" placeholder="ชื่อของคุณ" autocomplete="nickname">
     <div id="colors" role="radiogroup" aria-label="สีกระทง"></div>
@@ -541,6 +549,9 @@ scene.add(new THREE.HemisphereLight('#5b6aa8', '#0b0b18', .55));
 const moonLight = new THREE.DirectionalLight('#c9d6ff', .8);
 moonLight.position.copy(MOON_DIR).multiplyScalar(100);
 scene.add(moonLight);
+const fillLight = new THREE.DirectionalLight('#ffd9b0', .75);           // ánh đèn ấm phía bến chiếu lên mặt trước krathong
+fillLight.position.set(0, 6, 30);
+scene.add(fillLight);
 
 /* ---------- mặt nước (shader tự viết) ---------- */
 const water = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
@@ -714,35 +725,102 @@ function colorize(geo, color){
   g.setAttribute('color', new THREE.BufferAttribute(a, 3));
   return g;
 }
-function buildKrathongGeo(pal){
-  const parts = [];
-  const base = new THREE.CylinderGeometry(.6, .56, .28, 28); base.translate(0, .08, 0); parts.push(colorize(base, '#cdd69b'));   // thân chuối
-  const top = new THREE.CylinderGeometry(.5, .5, .02, 28); top.translate(0, .23, 0); parts.push(colorize(top, '#e6e9c2'));
-  const ring = (n, r, y, tilt, rad, h, cols, off = 0) => {                                                                     // lá chuối gấp
-    for (let i = 0; i < n; i++) {
-      const a = (i + off) / n * Math.PI * 2, g = new THREE.ConeGeometry(rad, h, 4, 1);
-      g.rotateY(Math.PI / 4); g.rotateZ(-tilt); g.rotateY(a); g.translate(Math.cos(a) * r, y, -Math.sin(a) * r);
-      parts.push(colorize(g, cols[i % cols.length]));
-    }
-  };
-  ring(16, .55, .34, .62, .14, .44, ['#2c6a30', '#3d8a3a']);
-  ring(12, .40, .44, .38, .12, .38, ['#3d8a3a', '#56a44c'], .5);
-  for (let i = 0; i < 10; i++) {                                                                                                // hoa vạn thọ
-    const a = i / 10 * Math.PI * 2 + .2, g = new THREE.IcosahedronGeometry(.085, 1);
-    g.scale(1, .8, 1); g.translate(Math.cos(a) * .27, .53, -Math.sin(a) * .27); parts.push(colorize(g, i % 2 ? pal[0] : pal[1]));
-  }
-  for (let i = 0; i < 5; i++) {                                                                                                 // nụ sen
-    const a = i / 5 * Math.PI * 2, g = new THREE.SphereGeometry(.06, 8, 6);
-    g.scale(1, 1.7, 1); g.translate(Math.cos(a) * .14, .62, -Math.sin(a) * .14); parts.push(colorize(g, pal[2]));
-  }
+// nến + nhang ở giữa (dùng chung cho mọi loại, đỉnh nến luôn ở cùng độ cao)
+function candleParts(parts){
   const candle = new THREE.CylinderGeometry(.035, .04, .34, 10); candle.translate(0, .76, 0); parts.push(colorize(candle, '#f4ead2'));
-  for (let i = 0; i < 3; i++) {                                                                                                 // nhang
+  for (let i = 0; i < 3; i++) {
     const a = i / 3 * Math.PI * 2 + .5, th = .12 * (i - 1), cx = Math.cos(a) * .08, cz = -Math.sin(a) * .08;
     const s = new THREE.CylinderGeometry(.007, .007, .44, 4); s.rotateZ(th); s.translate(cx, .8, cz); parts.push(colorize(s, '#7a3424'));
     const tip = new THREE.SphereGeometry(.016, 6, 4); tip.translate(cx - Math.sin(th) * .22, .8 + Math.cos(th) * .22, cz); parts.push(colorize(tip, '#ff4a1a'));
   }
+}
+function flowerRing(parts, n, r, y, cols, size = .085, off = .2){        // hoa vạn thọ
+  for (let i = 0; i < n; i++) {
+    const a = i / n * Math.PI * 2 + off, g = new THREE.IcosahedronGeometry(size, 1);
+    g.scale(1, .8, 1); g.translate(Math.cos(a) * r, y, -Math.sin(a) * r); parts.push(colorize(g, cols[i % cols.length]));
+  }
+}
+function budRing(parts, n, r, y, col){                                  // nụ sen nhỏ
+  for (let i = 0; i < n; i++) {
+    const a = i / n * Math.PI * 2, g = new THREE.SphereGeometry(.06, 8, 6);
+    g.scale(1, 1.7, 1); g.translate(Math.cos(a) * r, y, -Math.sin(a) * r); parts.push(colorize(g, col));
+  }
+}
+function leafRing(parts, n, r, y, tilt, rad, h, cols, off = 0){         // lá gấp hình nón
+  for (let i = 0; i < n; i++) {
+    const a = (i + off) / n * Math.PI * 2, g = new THREE.ConeGeometry(rad, h, 4, 1);
+    g.rotateY(Math.PI / 4); g.rotateZ(-tilt); g.rotateY(a); g.translate(Math.cos(a) * r, y, -Math.sin(a) * r);
+    parts.push(colorize(g, cols[i % cols.length]));
+  }
+}
+// 1. กระทงใบตอง: thân chuối + lá chuối gấp
+function buildBananaGeo(pal){
+  const parts = [];
+  const base = new THREE.CylinderGeometry(.6, .56, .28, 28); base.translate(0, .08, 0); parts.push(colorize(base, '#cdd69b'));
+  const top = new THREE.CylinderGeometry(.5, .5, .02, 28); top.translate(0, .23, 0); parts.push(colorize(top, '#e6e9c2'));
+  leafRing(parts, 16, .55, .34, .62, .14, .44, ['#2c6a30', '#3d8a3a']);
+  leafRing(parts, 12, .40, .44, .38, .12, .38, ['#3d8a3a', '#56a44c'], .5);
+  flowerRing(parts, 10, .27, .53, [pal[1], pal[0]]);
+  budRing(parts, 5, .14, .62, pal[2]);
+  candleParts(parts);
   return mergeGeometries(parts);
 }
+// 2. กระทงดอกบัว: nhiều tầng cánh sen cong mở ra trên lá sen
+function buildLotusGeo(pal){
+  const parts = [], mix = (a, b, t) => new THREE.Color(a).lerp(new THREE.Color(b), t);
+  const pad = new THREE.CylinderGeometry(.7, .7, .03, 30); pad.translate(0, -.02, 0); parts.push(colorize(pad, '#3f7d3a'));
+  const base = new THREE.CylinderGeometry(.42, .38, .14, 24); base.translate(0, .05, 0); parts.push(colorize(base, '#7fb069'));
+  const petals = (n, r, y, tilt, len, wid, col, off = 0) => {
+    for (let i = 0; i < n; i++) {
+      const a = (i + off) / n * Math.PI * 2, g = new THREE.SphereGeometry(1, 10, 8);
+      g.scale(wid * .3, len, wid); g.translate(0, len, 0);            // gốc cánh ở tâm, cánh mỏng theo hướng bán kính
+      g.rotateZ(-tilt); g.rotateY(a); g.translate(Math.cos(a) * r, y, -Math.sin(a) * r);
+      parts.push(colorize(g, col));
+    }
+  };
+  petals(12, .34, .08, 1.05, .27, .17, mix('#ff7fae', pal[0], .35));
+  petals(10, .24, .14, .62, .26, .15, mix('#ffa8c8', pal[1], .3), .5);
+  petals(8, .12, .2, .28, .23, .12, mix('#ffe1ec', pal[2], .25));
+  const pod = new THREE.CylinderGeometry(.11, .09, .08, 14); pod.translate(0, .46, 0); parts.push(colorize(pod, '#f2d14b'));
+  candleParts(parts);
+  return mergeGeometries(parts);
+}
+// 3. กระทงขนมปัง: đế bánh mì nướng, viền bánh xoắn, hoa trên mặt (cá ăn được)
+function buildBreadGeo(pal){
+  const parts = [];
+  const base = new THREE.CylinderGeometry(.6, .54, .26, 28); base.translate(0, .06, 0); parts.push(colorize(base, '#b8763a'));
+  const crust = new THREE.CylinderGeometry(.53, .6, .07, 28); crust.translate(0, .22, 0); parts.push(colorize(crust, '#d99a52'));
+  const top = new THREE.CylinderGeometry(.46, .46, .02, 28); top.translate(0, .26, 0); parts.push(colorize(top, '#f0c98a'));
+  for (let i = 0; i < 16; i++) {
+    const a = i / 16 * Math.PI * 2, g = new THREE.SphereGeometry(.095, 8, 6);
+    g.scale(1.2, .75, 1); g.rotateY(a); g.translate(Math.cos(a) * .53, .27, -Math.sin(a) * .53);
+    parts.push(colorize(g, i % 2 ? '#c9843f' : '#e3ab62'));
+  }
+  leafRing(parts, 6, .38, .34, 1.0, .07, .22, ['#3d8a3a', '#56a44c']);
+  flowerRing(parts, 8, .28, .36, [pal[0], pal[1]]);
+  budRing(parts, 4, .13, .44, pal[2]);
+  candleParts(parts);
+  return mergeGeometries(parts);
+}
+// 4. กระทงกะลามะพร้าว: nửa vỏ dừa, viền, cơm dừa trắng, hoa bên trong
+function buildCoconutGeo(pal){
+  const parts = [];
+  const shell = new THREE.SphereGeometry(.56, 22, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+  shell.scale(1, .72, 1); shell.translate(0, .3, 0); parts.push(colorize(shell, '#5a3b22'));
+  const rim = new THREE.TorusGeometry(.56, .035, 6, 30); rim.rotateX(Math.PI / 2); rim.translate(0, .3, 0); parts.push(colorize(rim, '#7a5434'));
+  const meat = new THREE.CylinderGeometry(.54, .54, .02, 30); meat.translate(0, .29, 0); parts.push(colorize(meat, '#f3ead8'));
+  leafRing(parts, 7, .44, .36, 1.15, .07, .26, ['#2c6a30', '#56a44c']);
+  flowerRing(parts, 9, .3, .36, [pal[1], pal[0]], .09);
+  budRing(parts, 4, .14, .44, pal[2]);
+  candleParts(parts);
+  return mergeGeometries(parts);
+}
+const KR_TYPES = [
+  { icon: '🍃', name: 'ใบตอง', build: buildBananaGeo },
+  { icon: '🪷', name: 'ดอกบัว', build: buildLotusGeo },
+  { icon: '🍞', name: 'ขนมปัง', build: buildBreadGeo },
+  { icon: '🥥', name: 'กะลา', build: buildCoconutGeo },
+];
 // 8 màu hoa để mỗi người tự chọn
 const COLORS = [
   { color: '#ffb020', pal: ['#ff8a1c', '#ffc21a', '#f6a6c8'] },
@@ -754,7 +832,8 @@ const COLORS = [
   { color: '#ffe066', pal: ['#ffe066', '#ff9a2e', '#ffffff'] },
   { color: '#ffffff', pal: ['#ffffff', '#ffe9c4', '#ffc8e0'] },
 ];
-const KR_GEOS = COLORS.map(f => buildKrathongGeo(f.pal));
+const KR_GEO_CACHE = {};                                               // dựng hình theo (loại, màu) khi cần
+const krGeo = (type, variant) => KR_GEO_CACHE[type + '-' + variant] || (KR_GEO_CACHE[type + '-' + variant] = KR_TYPES[type].build(COLORS[variant].pal));
 const krMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .7, metalness: 0, emissive: '#3a1c06', emissiveIntensity: .9 });
 const FLAME_Y = 1.03;
 const flameMat = new THREE.SpriteMaterial({ map: flameTex, color: new THREE.Color(1.6, 1.15, .75), blending: THREE.AdditiveBlending, depthWrite: false });
@@ -781,11 +860,12 @@ function makeLabel(name, wish, color){
 }
 
 class Krathong {
-  constructor(x, z, { variant = Math.floor(Math.random() * COLORS.length), name = '', wish = '', age = 0, user = false, person = null } = {}){
+  constructor(x, z, { variant = Math.floor(Math.random() * COLORS.length), type = 0, name = '', wish = '', age = 0, user = false, person = null } = {}){
     this.person = person;
     this.group = new THREE.Group();
     this.variant = variant; this.name = name; this.pulse = name ? 1 : 0;
-    this.mesh = new THREE.Mesh(KR_GEOS[variant], krMat);
+    this.type = type;
+    this.mesh = new THREE.Mesh(krGeo(type, variant), krMat);
     this.mesh.userData.krathong = this;
     this.baseScale = rand(.88, 1.1);
     this.flame = new THREE.Sprite(flameMat.clone()); this.flame.position.y = FLAME_Y;
@@ -1244,6 +1324,22 @@ function selectColor(i){
 }
 selectColor(Math.floor(Math.random() * COLORS.length));
 
+// Chọn loại krathong
+let selectedType = 0;
+const typesEl = $('#types');
+KR_TYPES.forEach((tp, i) => {
+  const b = document.createElement('button');
+  b.className = 'tp'; b.type = 'button'; b.setAttribute('role', 'radio');
+  b.textContent = tp.icon + ' ' + tp.name;
+  b.addEventListener('click', () => selectType(i));
+  typesEl.appendChild(b);
+});
+function selectType(i){
+  selectedType = i;
+  [...typesEl.children].forEach((b, j) => b.setAttribute('aria-checked', j === i ? 'true' : 'false'));
+}
+selectType(0);
+
 const nameInput = $('#name'), wishInput = $('#wish');
 try { nameInput.value = localStorage.getItem('lk-name') || ''; } catch (e) {}
 
@@ -1279,7 +1375,8 @@ function addPerson(p, mode, pos){
                                             : [rand(portrait ? -2 : -4, portrait ? 2 : 4), rand(3, 7)]);
   x = clamp(x, -10, 10); z = clamp(z, -28, 8.2);              // luôn ở trong cụm trước bến
   const variant = clamp(p.color | 0, 0, COLORS.length - 1);
-  const k = new Krathong(x, z, { variant, name: p.name, wish: latestWish(p), person: p, age: mode === 'initial' ? rand(2, 30) : 0 });
+  const type = clamp(p.type | 0, 0, KR_TYPES.length - 1);
+  const k = new Krathong(x, z, { variant, type, name: p.name, wish: latestWish(p), person: p, age: mode === 'initial' ? rand(2, 30) : 0 });
   krathongs.push(k); people.set(p.id, { p, k });
   if (mode !== 'initial') celebrate(k);
   return k;
@@ -1362,7 +1459,7 @@ async function initFirebase(){
     F.onSnapshot(F.collection(db, 'people'), snap => {
       const list = snap.docs.map(d => {
         const x = d.data();
-        return { id: d.id, name: x.name, color: x.color, ts: x.ts, wishes: (x.wishes || []).slice().sort((a, b) => a.ts - b.ts) };
+        return { id: d.id, name: x.name, color: x.color, type: x.type | 0, ts: x.ts, wishes: (x.wishes || []).slice().sort((a, b) => a.ts - b.ts) };
       });
       applyList(list);
       if (first) { first = false; resolve(); }
@@ -1370,12 +1467,13 @@ async function initFirebase(){
   });
 }
 // Thêm người mới, hoặc nếu tên đã có thì chỉ nối thêm lời chúc (khớp với firestore.rules)
-async function firebaseRelease(name, wish, color){
+async function firebaseRelease(name, wish, color, type){
   const { F, db } = fb, key = nameKey(name), ref = F.doc(db, 'people', key), now = Date.now() / 1000;
   return F.runTransaction(db, async tx => {
     const snap = await tx.get(ref);
     if (!snap.exists()) {
       const p = { name, color, ts: now, wishes: wish ? [{ text: wish, ts: now }] : [] };
+      if (type) p.type = type;                                          // 0 (ใบตอง) là mặc định, không cần lưu
       tx.set(ref, p);
       return { id: key, ...p };
     }
@@ -1403,7 +1501,7 @@ initPeople();
 // Gõ tên đã có thì tự chọn đúng màu hoa của người đó
 nameInput.addEventListener('input', () => {
   const key = nameKey(nameInput.value);
-  for (const { p } of people.values()) if (nameKey(p.name) === key) { selectColor(p.color | 0); break; }
+  for (const { p } of people.values()) if (nameKey(p.name) === key) { selectColor(p.color | 0); selectType(p.type | 0); break; }
 });
 
 let posting = false;
@@ -1418,11 +1516,18 @@ async function release(x, z){
   let p = null;
   if (backend === 'firebase') {
     posting = true;
-    try { p = await firebaseRelease(name, wish, selected); }
+    try { p = await firebaseRelease(name, wish, selected, selectedType); }
     catch (e) {
-      console.error(e);
-      toast(e.code === 'full' ? 'กระทงนี้มีคำอวยพรครบ 30 ข้อแล้ว' : 'ส่งคำอวยพรไม่สำเร็จ ลองอีกครั้งนะ');
-      return;
+      let err = e;
+      if (selectedType && e.code === 'permission-denied') {             // luật cũ chưa cho trường "type": vẫn thả bằng ใบตอง
+        try { p = await firebaseRelease(name, wish, selected, 0); toast('ยังบันทึกแบบกระทงไม่ได้ ใช้แบบใบตองแทน'); }
+        catch (e2) { err = e2; }
+      }
+      if (!p) {
+        console.error(err);
+        toast(err.code === 'full' ? 'กระทงนี้มีคำอวยพรครบ 30 ข้อแล้ว' : 'ส่งคำอวยพรไม่สำเร็จ ลองอีกครั้งนะ');
+        return;
+      }
     }
     finally { posting = false; selfKey = null; }
   } else if (backend === 'api') {
@@ -1437,7 +1542,7 @@ async function release(x, z){
   }
   if (!p) {                                   // không có server: chỉ lưu trên máy này
     const id = 'local:' + nameKey(name), old = people.get(id), now = Date.now() / 1000;
-    p = { id, name: old ? old.p.name : name, color: old ? old.p.color : selected, ts: old ? old.p.ts : now,
+    p = { id, name: old ? old.p.name : name, color: old ? old.p.color : selected, type: old ? old.p.type : selectedType, ts: old ? old.p.ts : now,
           wishes: [...(old ? old.p.wishes : []), ...(wish ? [{ text: wish, ts: now }] : [])] };
   }
   selfKey = null;
