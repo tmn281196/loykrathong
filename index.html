@@ -121,6 +121,57 @@
   #intro small{display:block;margin-top:14px;color:rgba(255,244,222,.5);font-size:12.5px}
   #intro .btn-gold{font-size:17px;padding:14px 30px;border-radius:999px}
   #intro .en{margin:-14px 0 26px;font-size:13.5px;color:rgba(255,244,222,.6);letter-spacing:.02em}
+
+  /* ---------- Cánh cửa chùa: đóng lại khi khách vào (chế độ đã đóng), mở ra khi bấm xem ---------- */
+  #intro .door{display:none}
+  body.closed #intro{background:none;perspective:1800px;overflow:hidden;transition:opacity .9s 1.5s}
+  body.closed #intro .door{display:block;position:absolute;top:0;bottom:0;width:50.2%;z-index:0;
+    background:
+      radial-gradient(circle,rgba(255,214,120,.38) 0 1.6px,transparent 2.4px) 0 0/26px 26px,
+      linear-gradient(90deg,rgba(0,0,0,.25),transparent 18%,transparent 82%,rgba(0,0,0,.35)),
+      linear-gradient(180deg,#86121a,#5c0a11 50%,#86121a);
+    box-shadow:inset 0 0 0 10px #c9962e,inset 0 0 0 14px #5e3a0e,inset 0 0 0 18px #e7b955,inset 0 0 80px rgba(0,0,0,.65);
+    transition:transform 2s cubic-bezier(.55,.05,.2,1);backface-visibility:hidden}
+  body.closed #intro .door.left{left:0;transform-origin:left center;transform:rotateY(-102deg)}
+  body.closed #intro .door.right{right:0;transform-origin:right center;transform:rotateY(102deg)}
+  body.closed #intro.shut .door{transform:rotateY(0)}
+  body.closed #intro.hide .door.left{transform:rotateY(-102deg)}
+  body.closed #intro.hide .door.right{transform:rotateY(102deg)}
+  /* khung trong + hoa văn chéo vàng */
+  body.closed #intro .door::before{content:"";position:absolute;inset:9% 13%;border:3px solid #e7b955;border-radius:8px;
+    box-shadow:0 0 0 6px rgba(94,58,14,.7),0 0 0 9px rgba(231,185,85,.55),inset 0 0 30px rgba(0,0,0,.45);
+    background:
+      repeating-linear-gradient(45deg,rgba(231,185,85,.13) 0 2px,transparent 2px 16px),
+      repeating-linear-gradient(-45deg,rgba(231,185,85,.13) 0 2px,transparent 2px 16px)}
+  /* hoa văn hình thoi ở giữa cánh */
+  body.closed #intro .door::after{content:"";position:absolute;left:50%;top:50%;width:min(26vw,170px);aspect-ratio:1;
+    transform:translate(-50%,-50%) rotate(45deg);border:3px solid #e7b955;border-radius:10px;
+    background:radial-gradient(circle,rgba(255,220,140,.55),rgba(201,150,46,.25) 45%,transparent 70%);
+    box-shadow:0 0 0 7px rgba(94,58,14,.6),0 0 24px rgba(255,200,110,.35)}
+  /* vòng nắm cửa bằng vàng */
+  body.closed #intro .ring{position:absolute;top:50%;width:44px;height:44px;margin-top:-22px;border-radius:50%;z-index:1;
+    border:6px solid #e7b955;box-shadow:0 0 0 2px #5e3a0e,inset 0 0 0 2px #5e3a0e,0 0 18px rgba(255,200,110,.6)}
+  body.closed #intro .left .ring{right:26px}
+  body.closed #intro .right .ring{left:26px}
+  /* tia sáng vàng ở khe cửa khi vừa đóng */
+  body.closed #intro .seam{position:absolute;left:50%;top:0;bottom:0;width:6px;margin-left:-3px;z-index:1;opacity:0;
+    background:linear-gradient(180deg,transparent,rgba(255,226,150,.95) 20%,rgba(255,240,200,1) 50%,rgba(255,226,150,.95) 80%,transparent);
+    box-shadow:0 0 30px 8px rgba(255,200,110,.55)}
+  body.closed #intro.shut-done .seam{animation:seamGlow 2.4s ease-out forwards}
+  @keyframes seamGlow{0%{opacity:0}15%{opacity:1}100%{opacity:.25}}
+  body.closed #intro.hide .seam{opacity:0;animation:none}
+  /* lời nhắn nổi trên cửa */
+  body.closed #intro .inner{position:relative;z-index:2;opacity:0;transform:translateY(12px);transition:opacity 1s,transform 1s;
+    background:rgba(12,8,26,.74);border:1px solid rgba(231,185,85,.45);border-radius:20px;padding:26px 24px;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  body.closed #intro .inner{pointer-events:none}
+  body.closed #intro.shut-done .inner{opacity:1;transform:none;pointer-events:auto}
+  body.closed #intro.hide .inner{opacity:0;transition:opacity .5s}
+  @media (prefers-reduced-motion:reduce){body.closed #intro .door{transition:none}}
+  @media (max-width:640px){
+    body.closed #intro .ring{width:34px;height:34px;margin-top:-17px;border-width:5px}
+    body.closed #intro .left .ring{right:16px} body.closed #intro .right .ring{left:16px}
+  }
   /* Chế độ đã đóng: ẩn khung thả hoa, hiện lời hẹn năm sau */
   #closedBanner{display:none}
   body.closed #bar, body.closed #hint{display:none}
@@ -190,6 +241,9 @@
 <div id="toast" class="panel"></div>
 
 <div id="intro">
+  <div class="door left" aria-hidden="true"><span class="ring"></span></div>
+  <div class="door right" aria-hidden="true"><span class="ring"></span></div>
+  <div class="seam" aria-hidden="true"></div>
   <div class="inner">
     <img class="logo" src="assets/tng-logo.png" alt="T.N.G TECH" width="480" height="225">
     <div class="th">ลอยกระทง</div>
@@ -200,6 +254,16 @@
     <small>ยังชมกระทงและคำอวยพรของทุกคนได้ · มีเพลงประกอบ</small>
   </div>
 </div>
+<script>
+  // Chế độ đã đóng: cánh cửa từ từ khép lại ngay khi khách mở trang, rồi hiện lời hẹn năm sau
+  (function () {
+    var intro = document.getElementById('intro');
+    if (!document.body.classList.contains('closed')) return;
+    void intro.offsetWidth;                                   // để trình duyệt vẽ trạng thái cửa mở trước
+    setTimeout(function () { intro.classList.add('shut'); }, 500);
+    setTimeout(function () { intro.classList.add('shut-done'); }, 2500);
+  })();
+</script>
 
 <script type="importmap">
 { "imports": {
